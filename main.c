@@ -20,6 +20,7 @@
  */
 #include <msp430.h> 
 #include <intrinsics.h>
+#include <servo.h>
 
 volatile unsigned char RXDta;
 
@@ -88,12 +89,22 @@ void main( void )
 #pragma vector=USI_VECTOR
 __interrupt void universal_serial_interface(void)
 {
+
+
     while( !(USICTL1 & USIIFG) );       /* waiting char by USI counter flag */
     RXDta = USISRL;
 
     if (RXDta == 0x31)                  /* if the input buffer is 0x31 (mainly to read the buffer) */
     {
         P1OUT |= BIT0;                  /* turn on LED */
+    }
+    else if (RXDta == 0x0A)
+    {
+        servo_PWM();
+    }
+    else if (RXDta == 0x0B)
+    {
+        servo_stop();
     }
     else if (RXDta == 0x30)
     {
