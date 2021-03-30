@@ -6,7 +6,6 @@
  *
  * M S P 4 3 0 G 2 2 3 1   -   SPI/SLAVE 3 Wires
  *
- * (c)-Yann DUCHEMIN / ESIGELEC - r.III162018 for CCS
  * --------------------------------------------------------------
  * La carte Launchpad est raccordée en SPI via l'USI B0
  *      SCLK : P1.5 / SCLK
@@ -17,7 +16,20 @@
  *
  * A la reception du caractère 0 la LED Rouge P1.0 est eteinte
  *
+ *
+ *                                  MSP430G2231
+ *                               -----------------
+ *                             -|VCC           GND|-
+ *                             -|P1.0          XIN|-
+ *                             -|P1.1         XOUT|-
+ *                            <-|P1.2         TEST|-
+ *                  Stepmotor <-|P1.3          RST|->
+ *                        SPI <-|P1.4         P1.7|-> SPI Data Out
+ *                            ->|P1.5         P1.6|<- SPI Data In
+ *                               -----------------
+ *
  */
+
 #include <msp430.h> 
 #include <intrinsics.h>
 #include <servo.h>
@@ -98,17 +110,13 @@ __interrupt void universal_serial_interface(void)
     {
         P1OUT |= BIT0;                  /* turn on LED */
     }
-    else if (RXDta == 0x0A)
-    {
-        servo_PWM();
-    }
-    else if (RXDta == 0x0B)
-    {
-        servo_stop();
-    }
     else if (RXDta == 0x30)
     {
         P1OUT &= ~BIT0;                 /* turn off LED */
+    }
+    else if (RXDta == 0x0A)
+    {
+        servo_PWM();
     }
     USISRL = RXDta;
     USICNT &= ~USI16B;                  /* re-load counter & ignore USISRH */
