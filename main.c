@@ -118,6 +118,10 @@ __interrupt void universal_serial_interface(void)
     {
         servo_PWM();
     }
+    else if (RXDta == 0x0B)
+    {
+        servo_stop();
+    }
     USISRL = RXDta;
     USICNT &= ~USI16B;                  /* re-load counter & ignore USISRH */
     USICNT = 0x08;                      /* 8 bits count, that re-enable USI for next transfert */
