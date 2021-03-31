@@ -34,17 +34,18 @@
 #include <intrinsics.h>
 #include <servo.h>
 
-volatile unsigned char RXDta;
+typedef unsigned char UCHAR;
+volatile UCHAR RXDta;
 
 /*
  * main.c
  */
-void main( void )
+int main( void )	/* principal function */
 {
     /* Stop watchdog timer to prevent time out reset */
     WDTCTL = WDTPW | WDTHOLD;
 
-    if(CALBC1_1MHZ==0xFF || CALDCO_1MHZ==0xFF)
+    if((CALBC1_1MHZ==0xFF) || (CALDCO_1MHZ==0xFF))
     {
         __bis_SR_register(LPM4_bits);
     }
@@ -86,7 +87,9 @@ void main( void )
     USICNT = 0x08;
 
     /* Wait for the SPI clock to be idle (low). */
-    while ((P1IN & BIT5)) ;
+    while (P1IN & BIT5)
+    {
+    }
 
     USICTL0 &= ~USISWRST;
 
@@ -98,29 +101,36 @@ void main( void )
 /* *************************************************************************** */
 /* VECTEUR INTERRUPTION USI                                                    */
 /* *************************************************************************** */
+/* --------------------------------------------------------------------------- */
 #pragma vector=USI_VECTOR
-__interrupt void universal_serial_interface(void)
+__interrupt void universal_serial_interface(void) /* interface function */
 {
 
 
-    while( !(USICTL1 & USIIFG) );       /* waiting char by USI counter flag */
+    while( !(USICTL1 & USIIFG) )       /* waiting char by USI counter flag */
+    {
+    }
     RXDta = USISRL;
 
-    if (RXDta == 0x31)                  /* if the input buffer is 0x31 (mainly to read the buffer) */
+    if (RXDta == 0x31U)                  /* if the input buffer is 0x31 (mainly to read the buffer) */
     {
         P1OUT |= BIT0;                  /* turn on LED */
     }
-    else if (RXDta == 0x30)
+    else if (RXDta == 0x30U)
     {
         P1OUT &= ~BIT0;                 /* turn off LED */
     }
-    else if (RXDta == 0x0A)
+    else if (RXDta == 0x0AU)
     {
         servo_PWM();
     }
-    else if (RXDta == 0x0B)
+    else if (RXDta == 0x0BU)
     {
         servo_stop();
+    }
+    else
+    {
+        /* no action */
     }
     USISRL = RXDta;
     USICNT &= ~USI16B;                  /* re-load counter & ignore USISRH */
